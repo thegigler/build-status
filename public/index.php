@@ -1,0 +1,74 @@
+<?php
+declare(strict_types=1);
+
+use BuildStatus\App;
+use BuildStatus\ConfigLoader;
+
+require dirname(__DIR__) . '/src/bootstrap.php';
+
+$config = ConfigLoader::load(dirname(__DIR__) . '/config/builds.json');
+$snapshot = (new App($config))->snapshot();
+
+function h(?string $value): string {
+    return htmlspecialchars($value ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function humanDuration(?int $seconds): string {
+    if ($seconds === null) return '—';
+    $hours = intdiv($seconds, 3600);
+    $minutes = intdiv($seconds % 3600, 60);
+    return $hours > 0 ? "{$hours}h {$minutes}m" : "{$minutes}m";
+}
+?>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Build Status</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <p class="eyebrow">Build operations</p>
+      <h1>Build Status</h1>
+    </div>
+    <div class="generated">Generated <?= h($snapshot['generatedAt']) ?></div>
+  </header>
+
+  <?php foreach ($snapshot['groups'] as $group): ?>
+    <section>
+      <h2><?= h($group['label']) ?></h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Artifact</th>
+              <th>Status</th>
+              <th>Last modified</th>
+              <th>Expected start</th>
+              <th>Previous duration</th>
+            </tr>
+          </thead>
+          <tbody>
+          <?php foreach ($group['items'] as $item): ?>
+            <tr>
+              <td class="artifact"><?= h($item['path']) ?></td>
+              <td><span class="status status-<?= h($item['status']) ?>"><?= h($item['label']) ?></span></td>
+              <td><?= h($item['modifiedAt'] ?? '—') ?></td>
+              <td><?= h($item['scheduledStart'] ?? '—') ?></td>
+              <td><?= h(humanDuration($item['previousDurationSeconds'])) ?></td>
+            </tr>
+          <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  <?php endforeach; ?>
+
+  <footer><a href="/status.php">Machine-readable status</a></footer>
+</main>
+</body>
+</html>

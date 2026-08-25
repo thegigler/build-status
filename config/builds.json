@@ -1,0 +1,62 @@
+{
+  "timezone": "America/Los_Angeles",
+  "defaultGraceMinutes": 60,
+  "groups": [
+    {
+      "id": "one-main",
+      "label": "One - main",
+      "files": [
+        "/path/to/build/output-1.txt",
+        "/path/to/build/output-2.txt"
+      ],
+      "defaultRule": {
+        "schedule": {
+          "type": "daily",
+          "times": ["00:00", "04:00", "12:00", "17:00"]
+        },
+        "retentionDays": 3
+      },
+      "overrides": [
+        {
+          "match": "Something",
+          "schedule": {
+            "type": "weekly",
+            "weekday": "Sunday",
+            "time": "03:00"
+          },
+          "retentionDays": 10
+        }
+      ]
+    },
+    {
+      "id": "staging-33x",
+      "label": "33.x Staging",
+      "files": ["/path/to/staging/output-1.txt"],
+      "defaultRule": {
+        "schedule": {
+          "type": "daily",
+          "times": ["00:00", "12:00"]
+        },
+        "retentionDays": 3
+      },
+      "overrides": [
+        {
+          "match": "prebuild_manifest",
+          "scheduleOffsetMinutes": -120
+        }
+      ]
+    },
+    {
+      "id": "insights",
+      "label": "Insights",
+      "files": ["/path/to/insights/output-1.txt"],
+      "defaultRule": {
+        "schedule": {
+          "type": "daily",
+          "times": ["10:00", "22:00"]
+        },
+        "retentionDays": 3
+      }
+    }
+  ]
+}
