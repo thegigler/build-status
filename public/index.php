@@ -25,21 +25,32 @@ function humanDuration(?int $seconds): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.png" type="image/png">
   <title>Build Status</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <main>
+<nav class="group-links" aria-label="Build status groups">
+  <?php foreach ($snapshot['groups'] as $group): ?>
+    <a href="#<?= h($group['id']) ?>">
+      <?= h($group['label']) ?>
+    </a>
+  <?php endforeach; ?>
+</nav>
   <header>
     <div>
       <p class="eyebrow">Build operations</p>
       <h1>Build Status</h1>
     </div>
-    <div class="generated">Generated <?= h($snapshot['generatedAt']) ?></div>
+    <div class="generated">Generated <?= h(
+    (new DateTimeImmutable($snapshot['generatedAt']))
+        ->format('M j, Y \a\t g:i A T')
+) ?></div>
   </header>
 
   <?php foreach ($snapshot['groups'] as $group): ?>
-    <section>
+    <section id="<?= h($group['id']) ?>">
       <h2><?= h($group['label']) ?></h2>
       <div class="table-wrap">
         <table>
@@ -68,7 +79,7 @@ function humanDuration(?int $seconds): string {
     </section>
   <?php endforeach; ?>
 
-  <footer><a href="/status.php">Machine-readable status</a></footer>
+  <footer><a href="status.php">Machine-readable status</a></footer>
 </main>
 </body>
 </html>

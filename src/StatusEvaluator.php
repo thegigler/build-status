@@ -9,8 +9,8 @@ use DateTimeZone;
 final class StatusEvaluator
 {
     public function __construct(
-        private readonly DateTimeZone $timezone,
-        private readonly int $defaultGraceMinutes = 60
+        private DateTimeZone $timezone,
+        private int $defaultGraceMinutes = 60
     ) {}
 
     public function evaluate(string $path, array $rule, DateTimeImmutable $now): array

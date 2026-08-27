@@ -36,7 +36,7 @@ final class Schedule
         $candidates = [];
         $today = $now->setTimezone($timezone)->setTime(0, 0, 0);
 
-        foreach ([-1, 0] as $dayOffset) {
+        foreach ([-2, -1, 0] as $dayOffset) {
             $date = $today->modify(($dayOffset >= 0 ? '+' : '') . $dayOffset . ' day');
             foreach ($times as $time) {
                 if (!preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', (string)$time, $m)) {
