@@ -49,7 +49,6 @@ final class App
     private function worstStatus(array $items): array
     {
         $severity = [
-            'missing' => 6,
             'very-late' => 5,
             'late' => 4,
             'stale' => 3,
@@ -59,15 +58,28 @@ final class App
         ];
 
         $worst = null;
+        $nonMissingCount = 0;
         foreach ($items as $item) {
+            if ($item['status'] === 'missing') {
+                continue;
+            }
+
+            $nonMissingCount++;
             if ($worst === null || ($severity[$item['status']] ?? 0) > ($severity[$worst['status']] ?? 0)) {
                 $worst = $item;
             }
         }
 
+        if ($nonMissingCount === 0) {
+            return [
+                'status' => 'unknown',
+                'label' => 'Unknown'
+            ];
+        }
+
         return [
-            'status' => $worst['status'] ?? 'unknown',
-            'label' => $worst['label'] ?? 'Unknown'
+            'status' => $worst['status'],
+            'label' => $worst['label']
         ];
     }
 }
