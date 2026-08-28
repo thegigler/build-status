@@ -34,6 +34,7 @@ final class App
             $groups[] = [
                 'id' => $group['id'] ?? null,
                 'label' => $group['label'] ?? ($group['id'] ?? 'Builds'),
+                'status' => $this->worstStatus($items),
                 'items' => $items
             ];
         }
@@ -42,6 +43,42 @@ final class App
             'generatedAt' => $now->format(DATE_ATOM),
             'timezone' => $timezone->getName(),
             'groups' => $groups
+        ];
+    }
+
+    private function worstStatus(array $items): array
+    {
+        $severity = [
+            'very-late' => 5,
+            'late' => 4,
+            'unknown' => 2,
+            'running' => 1,
+            'healthy' => 0
+        ];
+
+        $worst = null;
+        $relevantCount = 0;
+        foreach ($items as $item) {
+            if ($item['status'] === 'missing' || $item['status'] === 'stale') {
+                continue;
+            }
+
+            $relevantCount++;
+            if ($worst === null || ($severity[$item['status']] ?? 0) > ($severity[$worst['status']] ?? 0)) {
+                $worst = $item;
+            }
+        }
+
+        if ($relevantCount === 0) {
+            return [
+                'status' => 'unknown',
+                'label' => 'Unknown'
+            ];
+        }
+
+        return [
+            'status' => $worst['status'],
+            'label' => $worst['label']
         ];
     }
 }

@@ -19,6 +19,38 @@ function humanDuration(?int $seconds): string {
     $minutes = intdiv($seconds % 3600, 60);
     return $hours > 0 ? "{$hours}h {$minutes}m" : "{$minutes}m";
 }
+
+function groupStatusStyle(array $items): string {
+    $statusColors = [
+        'healthy' => '#e8f7ec',
+        'running' => '#edf3ff',
+        'unknown' => '#eceff2',
+        'stale' => '#eceff2',
+        'late' => '#fff0f0',
+        'very-late' => '#b42318',
+        'missing' => '#22272e'
+    ];
+
+    $counts = array_fill_keys(array_keys($statusColors), 0);
+    foreach ($items as $item) {
+        $status = $item['status'] ?? 'unknown';
+        $counts[$status] = ($counts[$status] ?? 0) + 1;
+    }
+
+    $total = array_sum($counts);
+    if ($total === 0) return '';
+
+    $stops = [];
+    $position = 0.0;
+    foreach ($counts as $status => $count) {
+        if ($count === 0) continue;
+        $start = $position;
+        $position += ($count / $total) * 100;
+        $stops[] = $statusColors[$status] . " {$start}% {$position}%";
+    }
+
+    return 'background: linear-gradient(90deg, ' . implode(', ', $stops) . ');';
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -32,9 +64,14 @@ function humanDuration(?int $seconds): string {
 <body>
 <main>
 <nav class="group-links" aria-label="Build status groups">
-  <?php foreach ($snapshot['groups'] as $group): ?>
-    <a href="#<?= h($group['id']) ?>">
-      <?= h($group['label']) ?>
+  <?php foreach ($snapshot['groups'] as $index => $group): ?>
+    <a class="group-link<?= $index === 0 ? ' active' : '' ?>"
+       href="#<?= h($group['id']) ?>"
+       data-group-id="<?= h($group['id']) ?>"
+       aria-controls="group-<?= h($group['id']) ?>"
+       aria-selected="<?= $index === 0 ? 'true' : 'false' ?>">
+      <span class="group-label"><?= h($group['label']) ?></span>
+      <span class="group-status-bar" style="<?= h(groupStatusStyle($group['items'])) ?>" aria-hidden="true"></span>
     </a>
   <?php endforeach; ?>
 </nav>
@@ -49,8 +86,8 @@ function humanDuration(?int $seconds): string {
 ) ?></div>
   </header>
 
-  <?php foreach ($snapshot['groups'] as $group): ?>
-    <section id="<?= h($group['id']) ?>">
+  <?php foreach ($snapshot['groups'] as $index => $group): ?>
+    <section id="group-<?= h($group['id']) ?>" data-group="<?= h($group['id']) ?>"<?= $index !== 0 ? ' hidden' : '' ?>>
       <h2><?= h($group['label']) ?></h2>
       <div class="table-wrap">
         <table>
@@ -81,5 +118,33 @@ function humanDuration(?int $seconds): string {
 
   <footer><a href="status.php">Machine-readable status</a></footer>
 </main>
+<script>
+(() => {
+  const links = [...document.querySelectorAll('.group-link')];
+  const groups = [...document.querySelectorAll('[data-group]')];
+
+  function showGroup(id, updateHash = true) {
+    const group = groups.find((element) => element.dataset.group === id);
+    if (!group) return;
+    groups.forEach((element) => { element.hidden = element !== group; });
+    links.forEach((link) => {
+      const active = link.dataset.groupId === id;
+      link.classList.toggle('active', active);
+      link.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    if (updateHash) history.replaceState(null, '', '#' + id);
+  }
+
+  links.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      showGroup(link.dataset.groupId);
+    });
+  });
+
+  const initialId = location.hash ? location.hash.slice(1) : links[0]?.dataset.groupId;
+  if (initialId) showGroup(initialId, false);
+})();
+</script>
 </body>
 </html>
