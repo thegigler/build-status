@@ -47,7 +47,6 @@ footer a { color: #345d8c; }
 .group-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   padding: 6px 10px;
   border: 1px solid var(--rule);
   border-radius: 6px;
@@ -62,12 +61,10 @@ footer a { color: #345d8c; }
   outline: 2px solid var(--rule);
 }
 
-.group-link.status-very-late,
-.group-link.status-missing {
-  color: #fff;
-}
-
-.group-status {
-  font-size: 11px;
-  opacity: .8;
-}
+.group-link.status-healthy { background: #e8f7ec; color: #1f6b35; }
+.group-link.status-running { background: #edf3ff; color: #2857a4; }
+.group-link.status-late { background: #fff0f0; color: #a33a3a; }
+.group-link.status-very-late { background: #b42318; color: #fff; }
+.group-link.status-stale,
+.group-link.status-unknown { background: #eceff2; color: #59636d; }
+.group-link.status-missing { background: #22272e; color: #fff; }
