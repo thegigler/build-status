@@ -51,26 +51,25 @@ final class App
         $severity = [
             'very-late' => 5,
             'late' => 4,
-            'stale' => 3,
             'unknown' => 2,
             'running' => 1,
             'healthy' => 0
         ];
 
         $worst = null;
-        $nonMissingCount = 0;
+        $relevantCount = 0;
         foreach ($items as $item) {
-            if ($item['status'] === 'missing') {
+            if ($item['status'] === 'missing' || $item['status'] === 'stale') {
                 continue;
             }
 
-            $nonMissingCount++;
+            $relevantCount++;
             if ($worst === null || ($severity[$item['status']] ?? 0) > ($severity[$worst['status']] ?? 0)) {
                 $worst = $item;
             }
         }
 
-        if ($nonMissingCount === 0) {
+        if ($relevantCount === 0) {
             return [
                 'status' => 'unknown',
                 'label' => 'Unknown'
