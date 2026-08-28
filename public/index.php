@@ -66,12 +66,12 @@ function groupStatusStyle(array $items): string {
 <nav class="group-links" aria-label="Build status groups">
   <?php foreach ($snapshot['groups'] as $index => $group): ?>
     <a class="group-link<?= $index === 0 ? ' active' : '' ?>"
-       style="<?= h(groupStatusStyle($group['items'])) ?>"
        href="#<?= h($group['id']) ?>"
        data-group-id="<?= h($group['id']) ?>"
        aria-controls="group-<?= h($group['id']) ?>"
        aria-selected="<?= $index === 0 ? 'true' : 'false' ?>">
-      <?= h($group['label']) ?>
+      <span class="group-label"><?= h($group['label']) ?></span>
+      <span class="group-status-bar" style="<?= h(groupStatusStyle($group['items'])) ?>" aria-hidden="true"></span>
     </a>
   <?php endforeach; ?>
 </nav>
