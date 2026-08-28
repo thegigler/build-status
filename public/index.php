@@ -19,6 +19,38 @@ function humanDuration(?int $seconds): string {
     $minutes = intdiv($seconds % 3600, 60);
     return $hours > 0 ? "{$hours}h {$minutes}m" : "{$minutes}m";
 }
+
+function groupStatusStyle(array $items): string {
+    $statusColors = [
+        'healthy' => '#e8f7ec',
+        'running' => '#edf3ff',
+        'unknown' => '#eceff2',
+        'stale' => '#eceff2',
+        'late' => '#fff0f0',
+        'very-late' => '#b42318',
+        'missing' => '#22272e'
+    ];
+
+    $counts = array_fill_keys(array_keys($statusColors), 0);
+    foreach ($items as $item) {
+        $status = $item['status'] ?? 'unknown';
+        $counts[$status] = ($counts[$status] ?? 0) + 1;
+    }
+
+    $total = array_sum($counts);
+    if ($total === 0) return '';
+
+    $stops = [];
+    $position = 0.0;
+    foreach ($counts as $status => $count) {
+        if ($count === 0) continue;
+        $start = $position;
+        $position += ($count / $total) * 100;
+        $stops[] = $statusColors[$status] . " {$start}% {$position}%";
+    }
+
+    return 'background: linear-gradient(90deg, ' . implode(', ', $stops) . ');';
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -33,7 +65,8 @@ function humanDuration(?int $seconds): string {
 <main>
 <nav class="group-links" aria-label="Build status groups">
   <?php foreach ($snapshot['groups'] as $index => $group): ?>
-    <a class="group-link status-<?= h($group['status']['status']) ?><?= $index === 0 ? ' active' : '' ?>"
+    <a class="group-link<?= $index === 0 ? ' active' : '' ?>"
+       style="<?= h(groupStatusStyle($group['items'])) ?>"
        href="#<?= h($group['id']) ?>"
        data-group-id="<?= h($group['id']) ?>"
        aria-controls="group-<?= h($group['id']) ?>"
@@ -93,16 +126,12 @@ function humanDuration(?int $seconds): string {
   function showGroup(id, updateHash = true) {
     const group = groups.find((element) => element.dataset.group === id);
     if (!group) return;
-
-    groups.forEach((element) => {
-      element.hidden = element !== group;
-    });
+    groups.forEach((element) => { element.hidden = element !== group; });
     links.forEach((link) => {
       const active = link.dataset.groupId === id;
       link.classList.toggle('active', active);
       link.setAttribute('aria-selected', active ? 'true' : 'false');
     });
-
     if (updateHash) history.replaceState(null, '', '#' + id);
   }
 
