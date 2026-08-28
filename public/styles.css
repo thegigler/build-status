@@ -44,7 +44,10 @@ footer a { color: #345d8c; }
   margin-bottom: 24px;
 }
 
-.group-links a {
+.group-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 6px 10px;
   border: 1px solid var(--rule);
   border-radius: 6px;
@@ -54,6 +57,17 @@ footer a { color: #345d8c; }
   font-weight: 600;
 }
 
-.group-links a:hover {
-  background: #eef2f6;
+.group-link:hover,
+.group-link.active {
+  outline: 2px solid var(--rule);
+}
+
+.group-link.status-very-late,
+.group-link.status-missing {
+  color: #fff;
+}
+
+.group-status {
+  font-size: 11px;
+  opacity: .8;
 }
