@@ -38,8 +38,7 @@ function humanDuration(?int $seconds): string {
        data-group-id="<?= h($group['id']) ?>"
        aria-controls="group-<?= h($group['id']) ?>"
        aria-selected="<?= $index === 0 ? 'true' : 'false' ?>">
-      <span><?= h($group['label']) ?></span>
-      <span class="group-status"><?= h($group['status']['label']) ?></span>
+      <?= h($group['label']) ?>
     </a>
   <?php endforeach; ?>
 </nav>
