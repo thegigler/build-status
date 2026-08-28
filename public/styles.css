@@ -64,7 +64,7 @@ footer a { color: #345d8c; }
 .group-link.status-healthy { background: #e8f7ec; color: #1f6b35; }
 .group-link.status-running { background: #edf3ff; color: #2857a4; }
 .group-link.status-late { background: #fff0f0; color: #a33a3a; }
-.group-link.status-very-late { background: #b42318; color: #fff; }
+.group-link.status-very-late { background: #f8d7da; color: #8f2630; }
 .group-link.status-stale,
 .group-link.status-unknown { background: #eceff2; color: #59636d; }
 .group-link.status-missing { background: #22272e; color: #fff; }
