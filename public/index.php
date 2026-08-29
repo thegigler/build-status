@@ -22,7 +22,7 @@ function humanDuration(?int $seconds): string {
 
 function groupStatusStyle(array $items): string {
     $statusColors = [
-        'healthy' => '#e8f7ec',
+        'healthy' => '#00af00',
         'running' => '#edf3ff',
         'unknown' => '#eceff2',
         'stale' => '#eceff2',
@@ -51,6 +51,18 @@ function groupStatusStyle(array $items): string {
 
     return 'background: linear-gradient(90deg, ' . implode(', ', $stops) . ');';
 }
+
+$requestedView = isset($_GET['view']) ? (string) $_GET['view'] : null;
+$selectedGroupIndex = 0;
+if ($requestedView !== null) {
+    foreach ($snapshot['groups'] as $index => $group) {
+        if ((string) $group['id'] === $requestedView) {
+            $selectedGroupIndex = $index;
+            break;
+        }
+    }
+}
+$selectedGroupId = $snapshot['groups'][$selectedGroupIndex]['id'] ?? null;
 ?>
 <!doctype html>
 <html lang="en">
@@ -65,11 +77,11 @@ function groupStatusStyle(array $items): string {
 <main>
 <nav class="group-links" aria-label="Build status groups">
   <?php foreach ($snapshot['groups'] as $index => $group): ?>
-    <a class="group-link<?= $index === 0 ? ' active' : '' ?>"
-       href="#<?= h($group['id']) ?>"
+    <a class="group-link<?= $index === $selectedGroupIndex ? ' active' : '' ?>"
+       href="?view=<?= h($group['id']) ?>"
        data-group-id="<?= h($group['id']) ?>"
        aria-controls="group-<?= h($group['id']) ?>"
-       aria-selected="<?= $index === 0 ? 'true' : 'false' ?>">
+       aria-selected="<?= $index === $selectedGroupIndex ? 'true' : 'false' ?>">
       <span class="group-label"><?= h($group['label']) ?></span>
       <span class="group-status-bar" style="<?= h(groupStatusStyle($group['items'])) ?>" aria-hidden="true"></span>
     </a>
@@ -87,7 +99,7 @@ function groupStatusStyle(array $items): string {
   </header>
 
   <?php foreach ($snapshot['groups'] as $index => $group): ?>
-    <section id="group-<?= h($group['id']) ?>" data-group="<?= h($group['id']) ?>"<?= $index !== 0 ? ' hidden' : '' ?>>
+    <section id="group-<?= h($group['id']) ?>" data-group="<?= h($group['id']) ?>"<?= $index !== $selectedGroupIndex ? ' hidden' : '' ?>>
       <h2><?= h($group['label']) ?></h2>
       <div class="table-wrap">
         <table>
@@ -123,7 +135,7 @@ function groupStatusStyle(array $items): string {
   const links = [...document.querySelectorAll('.group-link')];
   const groups = [...document.querySelectorAll('[data-group]')];
 
-  function showGroup(id, updateHash = true) {
+  function showGroup(id, updateUrl = true) {
     const group = groups.find((element) => element.dataset.group === id);
     if (!group) return;
     groups.forEach((element) => { element.hidden = element !== group; });
@@ -132,7 +144,12 @@ function groupStatusStyle(array $items): string {
       link.classList.toggle('active', active);
       link.setAttribute('aria-selected', active ? 'true' : 'false');
     });
-    if (updateHash) history.replaceState(null, '', '#' + id);
+    if (updateUrl) {
+      const params = new URLSearchParams(location.search);
+      params.set('view', id);
+      const query = params.toString();
+      history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+    }
   }
 
   links.forEach((link) => {
@@ -142,7 +159,8 @@ function groupStatusStyle(array $items): string {
     });
   });
 
-  const initialId = location.hash ? location.hash.slice(1) : links[0]?.dataset.groupId;
+  const queryView = new URLSearchParams(location.search).get('view');
+  const initialId = queryView || links[0]?.dataset.groupId;
   if (initialId) showGroup(initialId, false);
 })();
 </script>
