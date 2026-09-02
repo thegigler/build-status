@@ -161,6 +161,12 @@ if ($requestedView !== null) {
   const queryView = new URLSearchParams(location.search).get('view');
   const initialId = queryView || links[0]?.dataset.groupId;
   if (initialId) showGroup(initialId, false);
+
+  // Refresh the whole page so the server recalculates build status.
+  // The current ?view=... URL is preserved, so the selected group survives.
+  window.setInterval(() => {
+    window.location.reload();
+  }, 60 * 1000);
 })();
 </script>
 </body>
