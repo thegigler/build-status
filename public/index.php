@@ -62,6 +62,7 @@ if ($requestedView !== null) {
         }
     }
 }
+$selectedGroupId = $snapshot['groups'][$selectedGroupIndex]['id'] ?? null;
 ?>
 <!doctype html>
 <html lang="en">
