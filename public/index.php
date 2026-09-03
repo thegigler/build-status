@@ -94,7 +94,7 @@ $selectedGroupId = $snapshot['groups'][$selectedGroupIndex]['id'] ?? null;
     </div>
     <div class="generated">Generated <?= h(
     (new DateTimeImmutable($snapshot['generatedAt']))
-        ->format('M j, Y \a\t g:i A T')
+        ->format('M j, Y \\a\\t g:i A T')
 ) ?></div>
   </header>
 
@@ -132,36 +132,11 @@ $selectedGroupId = $snapshot['groups'][$selectedGroupIndex]['id'] ?? null;
 </main>
 <script>
 (() => {
-  const links = [...document.querySelectorAll('.group-link')];
-  const groups = [...document.querySelectorAll('[data-group]')];
-
-  function showGroup(id, updateUrl = true) {
-    const group = groups.find((element) => element.dataset.group === id);
-    if (!group) return;
-    groups.forEach((element) => { element.hidden = element !== group; });
-    links.forEach((link) => {
-      const active = link.dataset.groupId === id;
-      link.classList.toggle('active', active);
-      link.setAttribute('aria-selected', active ? 'true' : 'false');
-    });
-    if (updateUrl) {
-      const params = new URLSearchParams(location.search);
-      params.set('view', id);
-      const query = params.toString();
-      history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
-    }
-  }
-
-  links.forEach((link) => {
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      showGroup(link.dataset.groupId);
-    });
-  });
-
-  const queryView = new URLSearchParams(location.search).get('view');
-  const initialId = queryView || links[0]?.dataset.groupId;
-  if (initialId) showGroup(initialId, false);
+  // Refresh the whole page so the server recalculates build status.
+  // Normal group links preserve ?view=... and therefore the selected group.
+  window.setInterval(() => {
+    window.location.reload();
+  }, 60 * 1000);
 })();
 </script>
 </body>
