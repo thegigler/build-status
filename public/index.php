@@ -52,6 +52,69 @@ function groupStatusStyle(array $items): string {
     return 'background: linear-gradient(90deg, ' . implode(', ', $stops) . ');';
 }
 
+function faviconDataUri(array $groups): string {
+    $statusColors = [
+        'healthy' => '#00af00',
+        'running' => '#edf3ff',
+        'unknown' => '#eceff2',
+        'late' => '#fff0f0',
+        'very-late' => '#b42318'
+    ];
+
+    $counts = array_fill_keys(array_keys($statusColors), 0);
+    foreach ($groups as $group) {
+        foreach ($group['items'] as $item) {
+            $status = $item['status'] ?? 'unknown';
+            if ($status === 'stale') $status = 'unknown';
+            if (isset($counts[$status])) $counts[$status]++;
+        }
+    }
+
+    $total = array_sum($counts);
+    $center = 16;
+    $radius = 15;
+    $paths = [];
+    $angle = -M_PI / 2;
+
+    if ($total === 0) {
+        $paths[] = '<circle cx="16" cy="16" r="15" fill="#eceff2"/>';
+    } elseif ($total === 1) {
+        foreach ($counts as $status => $count) {
+            if ($count > 0) {
+                $paths[] = '<circle cx="16" cy="16" r="15" fill="' . $statusColors[$status] . '"/>';
+                break;
+            }
+        }
+    } else {
+        foreach ($counts as $status => $count) {
+            if ($count === 0) continue;
+            $nextAngle = $angle + (2 * M_PI * $count / $total);
+            $x1 = $center + $radius * cos($angle);
+            $y1 = $center + $radius * sin($angle);
+            $x2 = $center + $radius * cos($nextAngle);
+            $y2 = $center + $radius * sin($nextAngle);
+            $largeArc = ($nextAngle - $angle) > M_PI ? 1 : 0;
+            $paths[] = sprintf(
+                '<path d="M 16 16 L %.3f %.3f A 15 15 0 %d 1 %.3f %.3f Z" fill="%s"/>',
+                $x1,
+                $y1,
+                $largeArc,
+                $x2,
+                $y2,
+                $statusColors[$status]
+            );
+            $angle = $nextAngle;
+        }
+    }
+
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">'
+        . implode('', $paths)
+        . '<circle cx="16" cy="16" r="15" fill="none" stroke="#22272e" stroke-width="1"/>'
+        . '</svg>';
+
+    return 'data:image/svg+xml;base64,' . base64_encode($svg);
+}
+
 $requestedView = isset($_GET['view']) ? (string) $_GET['view'] : null;
 $selectedGroupIndex = 0;
 if ($requestedView !== null) {
@@ -69,7 +132,7 @@ $selectedGroupId = $snapshot['groups'][$selectedGroupIndex]['id'] ?? null;
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="icon" href="<?= h(faviconDataUri($snapshot['groups'])) ?>" type="image/svg+xml">
   <title>Build Status</title>
   <link rel="stylesheet" href="styles.css">
 </head>
